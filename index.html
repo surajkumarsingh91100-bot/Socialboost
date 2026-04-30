@@ -1,42 +1,171 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Social Boost</title>
-  <style>
-    body { font-family: Arial; text-align: center; background:#111; color:white; }
-    .box { margin-top:50px; }
-    button { padding:10px 20px; background:#00ffcc; border:none; cursor:pointer; }
-  </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Boost Pro</title>
+
+<style>
+body {
+  margin:0;
+  font-family:sans-serif;
+  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  color:white;
+  text-align:center;
+}
+
+/* NAVBAR */
+.nav {
+  padding:15px;
+  font-size:20px;
+  font-weight:bold;
+  background:#00000040;
+  backdrop-filter:blur(10px);
+}
+
+/* CARD UI */
+.card {
+  margin:20px;
+  padding:20px;
+  border-radius:15px;
+  background:#ffffff10;
+  backdrop-filter: blur(10px);
+  box-shadow:0 0 20px #00000050;
+  animation:fade 1s ease;
+}
+
+/* INPUT */
+input {
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:8px;
+  width:80%;
+}
+
+/* BUTTON */
+button {
+  padding:12px 20px;
+  margin:10px;
+  border:none;
+  border-radius:10px;
+  background:#00ffcc;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+button:hover {
+  background:#00ccaa;
+  transform:scale(1.05);
+}
+
+/* COINS GLOW */
+#coins {
+  font-size:22px;
+  color:#00ffcc;
+}
+
+/* ANIMATION */
+@keyframes fade {
+  from {opacity:0; transform:translateY(20px);}
+  to {opacity:1; transform:translateY(0);}
+}
+</style>
 </head>
 
 <body>
-  <h1>Social Boost Panel</h1>
 
-  <div class="box">
-    <p>Coins: <span id="coins">0</span></p>
+<div class="nav">🚀 Social Boost Pro</div>
 
-    <button onclick="earn()">Follow & Earn Coins</button>
-    <br><br>
-    <button onclick="spend()">Get Followers</button>
-  </div>
+<div class="card">
+<h3>Login / Signup</h3>
+<input id="user" placeholder="Username"><br>
+<input id="pass" type="password" placeholder="Password"><br>
+
+<button onclick="signup()">Signup</button>
+<button onclick="login()">Login</button>
+</div>
+
+<div class="card">
+<h3 id="welcome">Not logged in</h3>
+<p>Coins: <span id="coins">0</span></p>
+
+<button onclick="earn()">Follow & Earn</button>
+<button onclick="spend()">Promote Profile</button>
+</div>
 
 <script>
-let coins = 0;
+let users = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = null;
+
+function signup(){
+  let username = user.value;
+  let password = pass.value;
+
+  if(!username || !password){
+    alert("Fill all fields");
+    return;
+  }
+
+  users.push({username,password,coins:0});
+  localStorage.setItem("users", JSON.stringify(users));
+  alert("Signup successful!");
+}
+
+function login(){
+  let username = user.value;
+  let password = pass.value;
+
+  let u = users.find(x=>x.username===username && x.password===password);
+
+  if(u){
+    currentUser = u;
+    welcome.innerText = "Welcome " + u.username;
+    coins.innerText = u.coins;
+  } else {
+    alert("Wrong login");
+  }
+}
 
 function earn(){
-  coins += 10;
-  document.getElementById("coins").innerText = coins;
-  alert("You followed someone! +10 coins");
+  if(!currentUser) return alert("Login first");
+
+  currentUser.coins += 10;
+  update();
+  flash("Coins +10");
 }
 
 function spend(){
-  if(coins >= 20){
-    coins -= 20;
-    document.getElementById("coins").innerText = coins;
-    alert("Your profile promoted!");
+  if(!currentUser) return alert("Login first");
+
+  if(currentUser.coins >= 20){
+    currentUser.coins -= 20;
+    update();
+    flash("Profile Promoted 🚀");
   } else {
-    alert("Not enough coins!");
+    alert("Not enough coins");
   }
+}
+
+function update(){
+  coins.innerText = currentUser.coins;
+  localStorage.setItem("users", JSON.stringify(users));
+}
+
+/* TOAST MESSAGE */
+function flash(msg){
+  let div = document.createElement("div");
+  div.innerText = msg;
+  div.style.position="fixed";
+  div.style.bottom="20px";
+  div.style.left="50%";
+  div.style.transform="translateX(-50%)";
+  div.style.background="#00ffcc";
+  div.style.color="black";
+  div.style.padding="10px 20px";
+  div.style.borderRadius="10px";
+  document.body.appendChild(div);
+
+  setTimeout(()=>div.remove(),2000);
 }
 </script>
 
