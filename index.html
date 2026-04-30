@@ -112,19 +112,21 @@ function signup(){
 }
 
 function login(){
-  let username = user.value;
-  let password = pass.value;
+  let username = document.getElementById("user").value;
+  let password = document.getElementById("pass").value;
 
   let u = users.find(x=>x.username===username && x.password===password);
 
   if(u){
     currentUser = u;
-    welcome.innerText = "Welcome " + u.username;
-    coins.innerText = u.coins;
+
+    document.getElementById("welcome").innerText = "Welcome " + u.username;
+    document.getElementById("coins").innerText = u.coins;
+
   } else {
     alert("Wrong login");
   }
-}
+  }
 
 function earn(){
   if(!currentUser) return alert("Login first");
@@ -147,7 +149,7 @@ function spend(){
 }
 
 function update(){
-  coins.innerText = currentUser.coins;
+  document.getElementById("coins").innerText = currentUser.coins;
   localStorage.setItem("users", JSON.stringify(users));
 }
 
