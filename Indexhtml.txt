@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Social Boost</title>
+  <style>
+    body { font-family: Arial; text-align: center; background:#111; color:white; }
+    .box { margin-top:50px; }
+    button { padding:10px 20px; background:#00ffcc; border:none; cursor:pointer; }
+  </style>
+</head>
+
+<body>
+  <h1>Social Boost Panel</h1>
+
+  <div class="box">
+    <p>Coins: <span id="coins">0</span></p>
+
+    <button onclick="earn()">Follow & Earn Coins</button>
+    <br><br>
+    <button onclick="spend()">Get Followers</button>
+  </div>
+
+<script>
+let coins = 0;
+
+function earn(){
+  coins += 10;
+  document.getElementById("coins").innerText = coins;
+  alert("You followed someone! +10 coins");
+}
+
+function spend(){
+  if(coins >= 20){
+    coins -= 20;
+    document.getElementById("coins").innerText = coins;
+    alert("Your profile promoted!");
+  } else {
+    alert("Not enough coins!");
+  }
+}
+</script>
+
+</body>
+</html>
