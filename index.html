@@ -13,7 +13,6 @@ body {
   text-align:center;
 }
 
-/* NAVBAR */
 .nav {
   padding:15px;
   font-size:20px;
@@ -22,18 +21,14 @@ body {
   backdrop-filter:blur(10px);
 }
 
-/* CARD UI */
 .card {
   margin:20px;
   padding:20px;
   border-radius:15px;
   background:#ffffff10;
   backdrop-filter: blur(10px);
-  box-shadow:0 0 20px #00000050;
-  animation:fade 1s ease;
 }
 
-/* INPUT */
 input {
   padding:10px;
   margin:5px;
@@ -42,7 +37,6 @@ input {
   width:80%;
 }
 
-/* BUTTON */
 button {
   padding:12px 20px;
   margin:10px;
@@ -50,24 +44,10 @@ button {
   border-radius:10px;
   background:#00ffcc;
   font-weight:bold;
-  transition:0.3s;
 }
 
 button:hover {
   background:#00ccaa;
-  transform:scale(1.05);
-}
-
-/* COINS GLOW */
-#coins {
-  font-size:22px;
-  color:#00ffcc;
-}
-
-/* ANIMATION */
-@keyframes fade {
-  from {opacity:0; transform:translateY(20px);}
-  to {opacity:1; transform:translateY(0);}
 }
 </style>
 </head>
@@ -77,8 +57,8 @@ button:hover {
 <div class="nav">🚀 Social Boost Pro</div>
 
 <div class="card">
-<h3>Login / Signup</h3>
-<input id="user" placeholder="Username"><br>
+<h3>Signup / Login</h3>
+<input id="email" placeholder="Email"><br>
 <input id="pass" type="password" placeholder="Password"><br>
 
 <button onclick="signup()">Signup</button>
@@ -89,85 +69,98 @@ button:hover {
 <h3 id="welcome">Not logged in</h3>
 <p>Coins: <span id="coins">0</span></p>
 
-<button onclick="earn()">Follow & Earn</button>
-<button onclick="spend()">Promote Profile</button>
+<button onclick="earn()">Earn Coins</button>
+<button onclick="spend()">Spend Coins</button>
 </div>
 
-<script>
-let users = JSON.parse(localStorage.getItem("users")) || [];
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { getFirestore, doc, setDoc, getDoc, updateDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* 🔥 YOUR FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+
 let currentUser = null;
 
-function signup(){
-  let username = user.value;
-  let password = pass.value;
+/* SIGNUP */
+window.signup = async function () {
+  let email = document.getElementById("email").value;
+  let pass = document.getElementById("pass").value;
 
-  if(!username || !password){
-    alert("Fill all fields");
-    return;
-  }
+  let userCred = await createUserWithEmailAndPassword(auth, email, pass);
 
-  users.push({username,password,coins:0});
-  localStorage.setItem("users", JSON.stringify(users));
-  alert("Signup successful!");
+  await setDoc(doc(db, "users", userCred.user.uid), {
+    email: email,
+    coins: 0
+  });
+
+  alert("Signup successful");
 }
 
-function login(){
-  let username = document.getElementById("user").value;
-  let password = document.getElementById("pass").value;
+/* LOGIN */
+window.login = async function () {
+  let email = document.getElementById("email").value;
+  let pass = document.getElementById("pass").value;
 
-  let u = users.find(x=>x.username===username && x.password===password);
+  let userCred = await signInWithEmailAndPassword(auth, email, pass);
+  currentUser = userCred.user;
 
-  if(u){
-    currentUser = u;
-
-    document.getElementById("welcome").innerText = "Welcome " + u.username;
-    document.getElementById("coins").innerText = u.coins;
-
-  } else {
-    alert("Wrong login");
-  }
-  }
-
-function earn(){
-  if(!currentUser) return alert("Login first");
-
-  currentUser.coins += 10;
-  update();
-  flash("Coins +10");
+  loadData();
 }
 
-function spend(){
-  if(!currentUser) return alert("Login first");
+/* LOAD DATA */
+async function loadData() {
+  let ref = doc(db, "users", currentUser.uid);
+  let snap = await getDoc(ref);
 
-  if(currentUser.coins >= 20){
-    currentUser.coins -= 20;
-    update();
-    flash("Profile Promoted 🚀");
+  document.getElementById("welcome").innerText =
+    "Welcome " + currentUser.email;
+
+  document.getElementById("coins").innerText =
+    snap.data().coins;
+}
+
+/* EARN */
+window.earn = async function () {
+  if (!currentUser) return alert("Login first");
+
+  let ref = doc(db, "users", currentUser.uid);
+  let snap = await getDoc(ref);
+
+  let newCoins = snap.data().coins + 10;
+
+  await updateDoc(ref, { coins: newCoins });
+  document.getElementById("coins").innerText = newCoins;
+}
+
+/* SPEND */
+window.spend = async function () {
+  if (!currentUser) return alert("Login first");
+
+  let ref = doc(db, "users", currentUser.uid);
+  let snap = await getDoc(ref);
+
+  if (snap.data().coins >= 20) {
+    let newCoins = snap.data().coins - 20;
+    await updateDoc(ref, { coins: newCoins });
+    document.getElementById("coins").innerText = newCoins;
+    alert("Profile Promoted 🚀");
   } else {
     alert("Not enough coins");
   }
-}
-
-function update(){
-  document.getElementById("coins").innerText = currentUser.coins;
-  localStorage.setItem("users", JSON.stringify(users));
-}
-
-/* TOAST MESSAGE */
-function flash(msg){
-  let div = document.createElement("div");
-  div.innerText = msg;
-  div.style.position="fixed";
-  div.style.bottom="20px";
-  div.style.left="50%";
-  div.style.transform="translateX(-50%)";
-  div.style.background="#00ffcc";
-  div.style.color="black";
-  div.style.padding="10px 20px";
-  div.style.borderRadius="10px";
-  document.body.appendChild(div);
-
-  setTimeout(()=>div.remove(),2000);
 }
 </script>
 
